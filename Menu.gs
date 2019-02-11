@@ -272,7 +272,7 @@ function createDoc(isHK2, sendEmail) {
       if(sendEmail == true && email != "" && email.length > 5) {
         // Attach PDF and send the email
         var subject = docName;
-        var body = "Mến chào quí Phụ Huynh,<br>Xin phụ huynh xem phiếu báo điểm đính kèm. Xin cám ơn.<br>Ban GLVN.";
+        var body = "Mến chào quí Phụ Huynh,<br>Xin phụ huynh xem phiếu báo điểm đính kèm. Xin cám ơn.<br>Chương Trình GLVN.";
         //email = "hle007@yahoo.com";
         MailApp.sendEmail(email, subject, body, {htmlBody: body, attachments: pdf});
       }
