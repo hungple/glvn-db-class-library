@@ -92,6 +92,7 @@ function createDoc(isHK2, sendEmail) {
   
   var colNames = [];
   var colPoints = [];
+  var colPointsMax = [];
   
   var folerId     = getReportCardFolderId();
 
@@ -108,9 +109,11 @@ function createDoc(isHK2, sendEmail) {
   
   // iterate through all column names
   for (var cellCol = pointBeginCol; ; cellCol++) {
+    var colPointMax = range.getCell(1, cellCol).getValue();
     var colName = range.getCell(2, cellCol).getValue();
     if(colName == "") { break; }
     colNames[cellCol-pointBeginCol] = colName;
+    colPointsMax[cellCol-pointBeginCol] = colPointMax;
   }
   
   Logger.log(colNames);
@@ -172,14 +175,14 @@ function createDoc(isHK2, sendEmail) {
       var hk1Total = 0;
       for (var i = 0; i<halfCol-1; i++) {
         if(colNames[i].length == DECIMAL_COL_LEN) {
-          copyBody.replaceText('@' + colNames[i] + '@', colPoints[i].toFixed(2));
+          copyBody.replaceText('@' + colNames[i] + '@', getLetterGrade(colPoints[i],colPointsMax[i]));
           hk1Total = hk1Total + parseFloat(colPoints[i]);
         }
         else {
           copyBody.replaceText('@' + colNames[i] + '@', colPoints[i]);
         }
       }
-      copyBody.replaceText('@Total1@', hk1Total.toFixed(2));
+      copyBody.replaceText('@Total1@', getLetterGrade(hk1Total, 50));
       var c1 = colPoints[halfCol-1];
       if(c1.length < 70) {
         c1 = c1 + "\n\n";
@@ -195,14 +198,14 @@ function createDoc(isHK2, sendEmail) {
       if(isHK2) { // fill in data for HK2
         for (var i = halfCol; i<colNames.length-1; i++) {
           if(colNames[i].length == DECIMAL_COL_LEN) {
-            copyBody.replaceText('@' + colNames[i] + '@', colPoints[i].toFixed(2));
+            copyBody.replaceText('@' + colNames[i] + '@', getLetterGrade(colPoints[i],colPointsMax[i]));
             hk2Total = hk2Total + parseFloat(colPoints[i]);
           }
           else {
             copyBody.replaceText('@' + colNames[i] + '@', colPoints[i]);
           }
         }
-        copyBody.replaceText('@Total2@', hk2Total.toFixed(2));
+        copyBody.replaceText('@Total2@', getLetterGrade(hk2Total, 50));
         copyBody.replaceText('@text1@', "Nhận xét của Giáo Lý Viên - Teacher's Comment:");
         var c2 = colPoints[colNames.length-1];
         if(c2.length < 70) {
@@ -218,13 +221,13 @@ function createDoc(isHK2, sendEmail) {
         // fill in data for Yearly Total
         for (var i = 0; i<halfCol-1; i++) {
           if(colNames[i].length == DECIMAL_COL_LEN) {
-            copyBody.replaceText('@' + colNames[i].substring(0,colNames[i].length-1) + '3@', (colPoints[i]+colPoints[i+halfCol]).toFixed(2));
+            copyBody.replaceText('@' + colNames[i].substring(0,colNames[i].length-1) + '3@', getLetterGrade(colPoints[i]+colPoints[i+halfCol],colPointsMax[i]*2));
           }
           else {
             copyBody.replaceText('@' + colNames[i].substring(0,colNames[i].length-1) + '3@', (colPoints[i]+colPoints[i+halfCol]));
           }
         }
-        copyBody.replaceText('@Total3@', (hk1Total + hk2Total).toFixed(2));
+        copyBody.replaceText('@Total3@', getLetterGrade(hk1Total + hk2Total, 100));
       }
       else { // fill in '-' for HK2
         for (var i = halfCol; i<colNames.length-1; i++) {
@@ -269,10 +272,26 @@ function createDoc(isHK2, sendEmail) {
       if(sendEmail == true && email != "" && email.length > 5) {
         // Attach PDF and send the email
         var subject = docName;
-        var body = "Mến chào quí Phụ Huynh,<br>Xin phụ huynh xem phiếu báo điểm đính kèm. Xin cám ơn.<br>Chương Trình GLVN.";
+        var body = "Mến chào quí Phụ Huynh,<br>Xin phụ huynh xem phiếu báo điểm đính kèm. Xin cám ơn.<br>Ban GLVN.";
         //email = "hle007@yahoo.com";
         MailApp.sendEmail(email, subject, body, {htmlBody: body, attachments: pdf});
       }
     }
+  }
+}
+
+
+function getLetterGrade(points, maxPoint) {
+  if(points/maxPoint*100 > 89.99) {
+    return "A";
+  }
+  else if(points/maxPoint*100 > 79.99) {
+    return "B";
+  }
+  else if(points/maxPoint*100 > 69.99) {
+    return "C";
+  }
+  else {
+    return "D";
   }
 }
